@@ -1,16 +1,16 @@
-name: LiangShi_Auto_v3
+name: LiangShi_Run
 on:
   push:
   workflow_dispatch:
 jobs:
-  analyze:
+  do_task:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - run: pip install pandas numpy
+      - run: pip install pandas
       - run: python main.py
         env:
           MY_SENDER: ${{ secrets.MY_SENDER }}
