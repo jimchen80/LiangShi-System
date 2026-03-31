@@ -1,9 +1,9 @@
-name: LiangShi_System_Final
+name: LiangShi_Final_Fix
 on:
   push:
   workflow_dispatch:
 jobs:
-  run_strategy:
+  run_job:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
