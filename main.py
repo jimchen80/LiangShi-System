@@ -7,7 +7,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 
-# 自动从 GitHub 设置中读取你的信息，不用改这里
+# 核心配置：自动读取 GitHub Settings 里的变量
 EMAIL_CONFIG = {
     "sender": os.getenv("MY_SENDER"),
     "password": os.getenv("MY_PASSWORD"),
@@ -23,7 +23,7 @@ class LiangShiEngineV3:
             msg['Subject'] = f"【梁氏6.0】{time_label} 自动报告"
             msg['From'] = EMAIL_CONFIG["sender"]
             msg['To'] = EMAIL_CONFIG["receiver"]
-            msg.attach(MIMEText("分析已完成，请查看附件。", 'plain'))
+            msg.attach(MIMEText("梁先生，策略分析已完成，请查看附件。", 'plain'))
             with open(file_path, "rb") as f:
                 part = MIMEApplication(f.read(), Name=os.path.basename(file_path))
                 part['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
@@ -39,9 +39,10 @@ class LiangShiEngineV3:
         all_csvs = glob.glob("*.csv")
         target_files = [f for f in all_csvs if '9' in f and '40' in f]
         if not target_files:
-            print("未找到 9点40分 文件")
+            print("未找到包含 9点40分 的CSV文件")
             return
         target = max(target_files, key=os.path.getctime)
+        print(f"正在处理: {target}")
         df = pd.read_csv(target, encoding='utf_8_sig')
         out_name = "Analysis_Result.csv"
         df.to_csv(out_name, index=False, encoding='utf_8_sig')
