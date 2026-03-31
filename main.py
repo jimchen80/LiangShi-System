@@ -12,10 +12,10 @@ from email.mime.application import MIMEApplication
 # 1. 核心配置区（请确保信息准确）
 # ==========================================
 EMAIL_CONFIG = {
-    "sender": "1002165332@qq.com",     
-    "password": "lnuxgdrxxiuqbcfe",           
-    "receiver": "1002165332@qq.com", 
-    "smtp_server": "smtp.qq.com",
+    "sender": "1002165332@qq.com" 
+    "password": "wuuvskggjeuybeag"        
+    "receiver": "1002165332@qq.com"
+    "smtp_server": "smtp.qq.com"
     "smtp_port": 465
 }
 
