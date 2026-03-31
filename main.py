@@ -13,7 +13,7 @@ from datetime import datetime
 # ==========================================
 EMAIL_CONFIG = {
     "sender": "1002165332@qq.com",      # 
-    "password": "你的授权码",            # 
+    "password": "biogljonvmmpbbcb",            # 
     "receiver": "1002165332@qq.com", # 
     "smtp_server": "smtp.qq.com",
     "smtp_port": 465
