@@ -2,24 +2,25 @@ name: LiangShi_Auto_v3
 
 on:
   push:
-    branches: [ main ]  # 只要你提交代码或上传新CSV文件，系统会立即跑一次
+    branches: [ main ]
+  workflow_dispatch:      # 允许您在 Actions 页面手动点击按钮运行
   schedule:
-    - cron: '15 2 * * *' # 北京时间每日 10:15 自动运行 (对应 UTC 时间 2:15)
+    - cron: '15 2 * * *' # 北京时间 10:15 自动运行
 
 jobs:
   analyze_and_mail:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. 拉取代码
+      - name: 1. 下载仓库代码
         uses: actions/checkout@v3
 
-      - name: 2. 安装 Python 环境
+      - name: 2. 配置 Python 环境
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: 3. 安装必要的数学库
+      - name: 3. 安装 Pandas 和 Numpy 库
         run: pip install pandas numpy
 
-      - name: 4. 执行梁氏引擎
+      - name: 4. 执行 main.py 脚本
         run: python main.py
