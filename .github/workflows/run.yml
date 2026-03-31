@@ -1,26 +1,18 @@
 name: LiangShi_Auto_v3
-
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:      # 允许您在 Actions 页面手动点击按钮运行
-  schedule:
-    - cron: '15 2 * * *' # 北京时间 10:15 自动运行
-
+  workflow_dispatch:
 jobs:
-  analyze_and_mail:
+  analyze:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. 下载仓库代码
-        uses: actions/checkout@v3
-
-      - name: 2. 配置 Python 环境
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-
-      - name: 3. 安装 Pandas 和 Numpy 库
-        run: pip install pandas numpy
-
-      - name: 4. 执行 main.py 脚本
-        run: python main.py
+      - run: pip install pandas numpy
+      - run: python main.py
+        env:
+          MY_SENDER: ${{ secrets.MY_SENDER }}
+          MY_PASSWORD: ${{ secrets.MY_PASSWORD }}
+          MY_RECEIVER: ${{ secrets.MY_RECEIVER }}
