@@ -3,7 +3,7 @@ on:
   push:
   workflow_dispatch:
   schedule:
-    - cron: '45 1 * * 1-5'  # 每天北京时间 09:45 自动运行（UTC时间 01:45）
+    - cron: '45 1 * * 1-5' 
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -12,7 +12,10 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - run: pip install pandas akshare  # 免费自动安装金融插件
+      
+      # --- 关键修复：必须加下面这一行来安装插件 ---
+      - run: pip install pandas akshare 
+      
       - run: python main.py
         env:
           MY_SENDER: ${{ secrets.MY_SENDER }}
