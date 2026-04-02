@@ -1,0 +1,19 @@
+name: Liang_6_1_System
+on:
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install pandas akshare
+      - run: python main.py
+      - name: 🚀 打包报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: 6.1实战分析报告
+          path: report.csv
