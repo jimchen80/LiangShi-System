@@ -1,9 +1,9 @@
-name: LiangShi_6_0_Auto_System
+name: LiangShi_6_1_Auto_System
 on:
   push:
   workflow_dispatch:
   schedule:
-    - cron: '45 1 * * 1-5' 
+    - cron: '45 1 * * 1-5' # 北京时间 09:45
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -13,11 +13,13 @@ jobs:
         with:
           python-version: '3.9'
       
-      # --- 关键修复：必须加下面这一行来安装插件 ---
-      - run: pip install pandas akshare 
+      - name: 安装必要插件
+        run: pip install pandas akshare
       
-      - run: python main.py
+      - name: 执行选股脚本并发送邮件
+        # 这里的 env 部分必须和 main.py 里的 os.getenv 一模一样
         env:
           MY_SENDER: ${{ secrets.MY_SENDER }}
           MY_PASSWORD: ${{ secrets.MY_PASSWORD }}
           MY_RECEIVER: ${{ secrets.MY_RECEIVER }}
+        run: python main.py
