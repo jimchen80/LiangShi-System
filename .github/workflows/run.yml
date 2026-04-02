@@ -1,0 +1,22 @@
+name: LiangShi_Auto_System
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '45 1 * * 1-5'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - run: pip install pandas akshare
+      - name: 核心运行步骤
+        env:
+          MY_SENDER: ${{ secrets.MY_SENDER }}
+          MY_PASSWORD: ${{ secrets.MY_PASSWORD }}
+          MY_RECEIVER: ${{ secrets.MY_RECEIVER }}
+        run: python main.py
