@@ -1,85 +1,67 @@
 import akshare as ak
 import pandas as pd
-import os, smtplib, time
+import os, smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 
-def liang_shi_6_1_stable_engine():
+def liang_shi_6_1_final_engine():
     try:
-        print("🚀 正在启动 6.1 稳定版决策引擎...")
+        print("🚀 首席策略分析师：正在启动全市场深度检索...")
         
-        # 1. 抓取全市场行情 (增加超时重试逻辑)
-        df_current = ak.stock_zh_a_spot_em()
-        df_current['代码'] = df_current['代码'].astype(str)
+        # 1. 抓取行情
+        df = ak.stock_zh_a_spot_em()
         
-        # 2. 基础过滤与动态买点 (逻辑保持不变)
+        # 2. 格式化数据
         num_cols = ['最新价', '涨跌幅', '成交额', '量比', '换手率']
         for col in num_cols:
-            df_current[col] = pd.to_numeric(df_current[col], errors='coerce')
+            df[col] = pd.to_numeric(df[col], errors='coerce')
 
-        mask = (df_current['涨跌幅'] >= 3.0) & (df_current['涨跌幅'] <= 9.9) & \
-               (df_current['成交额'] >= 500000000) & (df_current['量比'] >= 1.5) & \
-               (df_current['换手率'] >= 3.0) & (df_current['换手率'] <= 15.0)
-        filtered_df = df_current[mask].copy()
+        # 3. 6.0 核心算法筛选
+        # 逻辑：涨幅 3-9.9%, 成交额 > 5亿, 量比 > 1.5, 换手 3-15%
+        mask = (df['涨跌幅'] >= 3.0) & (df['涨跌幅'] <= 9.9) & \
+               (df['成交额'] >= 500000000) & (df['量比'] >= 1.5) & \
+               (df['换手率'] >= 3.0) & (df['换手率'] <= 15.0)
+        report_df = df[mask].copy()
 
-        if filtered_df.empty:
-            print("⚠️ 今日暂无符合 6.0 强力选股标准的标的。")
-            return
+        if report_df.empty:
+            print("⚠️ 今日暂无符合选股标准的标的，系统将发送提醒邮件。")
+            # 如果没票，也发个信，证明系统是通的
+            report_df = pd.DataFrame([{"提醒": "今日行情未达筛选门槛"}])
 
-        # 3. 稳健的买点逻辑
-        filtered_df['最佳买入点'] = filtered_df.apply(
-            lambda x: x['最新价'] if x['量比'] > 5 else round(x['最新价'] * 0.99, 2), axis=1
-        )
-
-        # 4. 修复：历史对比逻辑 (即使文件丢失也不报错)
-        history_file = "last_report_cache.csv"
-        filtered_df['是否连续入选'] = "首次"
-        filtered_df['综合评分'] = 85
+        # 4. 生成分析列
+        report_df['最佳买入点'] = report_df.apply(lambda x: x['最新价'] if x.get('量比', 0) > 5 else round(x.get('最新价', 0) * 0.99, 2), axis=1)
+        report_df['暗盘流入(亿)'] = (report_df['成交额'] / 100000000).round(2)
         
-        if os.path.exists(history_file):
-            try:
-                history_codes = pd.read_csv(history_file)['代码'].astype(str).tolist()
-                filtered_df.loc[filtered_df['代码'].isin(history_codes), '是否连续入选'] = "🔥连续"
-                filtered_df.loc[filtered_df['代码'].isin(history_codes), '综合评分'] = 95
-            except:
-                pass
+        # 5. 保存文件
+        out_name = "LiangShi_6.1_Final_Report.csv"
+        report_df.to_csv(out_name, index=False, encoding='utf_8_sig')
+
+        # 6. 发送邮件（严格匹配保险箱变量名）
+        s = os.getenv("MY_SENDER")
+        p = os.getenv("MY_PASSWORD")
+        r = os.getenv("MY_RECEIVER")
         
-        # 强制更新历史缓存（确保为下一次运行留存数据）
-        filtered_df[['代码', '名称']].to_csv(history_file, index=False)
+        print(f"📡 准备发信：从 {s} 发往 {r} ...")
 
-        # 5. 整理报表
-        filtered_df['暗盘资金流入'] = (filtered_df['成交额'] / 100000000).round(2).astype(str) + " 亿"
-        report = filtered_df.sort_values(by='综合评分', ascending=False)
-
-        # 6. 发送邮件
-        out_name = "Liang_6.1_Stable_Report.csv"
-        report.to_csv(out_name, index=False, encoding='utf_8_sig')
-        send_email(out_name, len(report))
+        msg = MIMEMultipart()
+        msg['Subject'] = f"【梁氏6.1终极版】实战决策报告"
+        msg['From'], msg['To'] = s, r
+        msg.attach(MIMEText("梁先生，这是全新的 6.1 终极版报告，请查收附件。", 'plain'))
+        
+        with open(out_name, "rb") as f:
+            part = MIMEApplication(f.read(), Name=out_name)
+            part['Content-Disposition'] = f'attachment; filename="{out_name}"'
+            msg.attach(part)
+            
+        with smtplib.SMTP_SSL("smtp.qq.com", 465) as server:
+            server.login(s, p)
+            server.sendmail(s, r, msg.as_string())
+        
+        print("✅ 捷报：邮件已成功投递至目标邮箱！")
 
     except Exception as e:
-        print(f"❌ 运行中断: {e}")
-
-def send_email(file_path, count):
-    s, p, r = os.getenv("MY_SENDER"), os.getenv("MY_PASSWORD"), os.getenv("MY_RECEIVER")
-    if not all([s, p, r]):
-        print("❌ 环境变量配置缺失，请检查 Secrets!")
-        return
-        
-    msg = MIMEMultipart()
-    msg['Subject'] = f"【梁氏6.1稳定版】决策报告 - 入选({count})"
-    msg['From'], msg['To'] = s, r
-    msg.attach(MIMEText(f"梁先生，这是优化后的 6.1 稳定版报告。已修复历史对比逻辑。", 'plain'))
-    
-    with open(file_path, "rb") as f:
-        part = MIMEApplication(f.read(), Name=file_path)
-        part['Content-Disposition'] = f'attachment; filename="{file_path}"'
-        msg.attach(part)
-        
-    with smtplib.SMTP_SSL("smtp.qq.com", 465, timeout=30) as server:
-        server.login(s, p)
-        server.sendmail(s, r, msg.as_string())
-    print("✅ 邮件发送成功！")
+        print(f"❌ 运行中断，原因: {e}")
 
 if __name__ == "__main__":
-    liang_shi_6_1_stable_engine()
+    liang_shi_6_1_final_engine()
